@@ -2,8 +2,8 @@
 # NOTE: DO *NOT* EDIT THIS FILE.  IT IS GENERATED.
 # PLEASE UPDATE Dockerfile.txt INSTEAD OF THIS FILE
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-FROM selenium/base:4.1.0-prerelease-20211105
-LABEL authors=SeleniumHQ
+FROM seleniarm/base:4.1.0-prerelease-20211105
+LABEL authors=sj26
 
 USER 1200
 
