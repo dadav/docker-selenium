@@ -1,4 +1,6 @@
-FROM ubuntu:focal-20210416
+ARG BUILD_FROM=ubuntu:focal-20210416
+FROM ${BUILD_FROM}
+
 LABEL authors="Selenium <selenium-developers@googlegroups.com>"
 
 #================================================
