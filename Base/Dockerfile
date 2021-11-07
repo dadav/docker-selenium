@@ -1,5 +1,7 @@
 FROM ubuntu:focal-20210416
 
+ARG ARCH
+
 LABEL authors="Selenium <selenium-developers@googlegroups.com>"
 
 #================================================
@@ -31,7 +33,7 @@ RUN apt-get -qqy update \
     supervisor \
     gnupg2 \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
-  && sed -i 's/securerandom\.source=file:\/dev\/random/securerandom\.source=file:\/dev\/urandom/' ./usr/lib/jvm/java-11-openjdk-amd64/conf/security/java.security
+  && sed -i 's/securerandom\.source=file:\/dev\/random/securerandom\.source=file:\/dev\/urandom/' ./usr/lib/jvm/java-11-openjdk-${ARCH}/conf/security/java.security
 
 #===================
 # Timezone settings
