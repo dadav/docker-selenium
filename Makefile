@@ -7,6 +7,7 @@ NAMESPACE := $(or $(NAMESPACE),$(NAMESPACE),$(NAME))
 AUTHORS := $(or $(AUTHORS),$(AUTHORS),SeleniumHQ)
 PUSH_IMAGE := $(or $(PUSH_IMAGE),$(PUSH_IMAGE),false)
 BUILD_ARGS := $(BUILD_ARGS)
+BUILD_ARCHS := 'linux/amd64,linux/arm64,linux/arm64/v7,linux/arm64/v8'
 MAJOR := $(word 1,$(subst ., ,$(TAG_VERSION)))
 MINOR := $(word 2,$(subst ., ,$(TAG_VERSION)))
 MAJOR_MINOR_PATCH := $(word 1,$(subst -, ,$(TAG_VERSION)))
@@ -50,100 +51,100 @@ build: all
 ci: build test
 
 base:
-	cd ./Base && docker build $(BUILD_ARGS) -t $(NAME)/base:$(TAG_VERSION) .
+	cd ./Base && docker buildx build --platform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/base:$(TAG_VERSION) .
 
 generate_hub:
 	cd ./Hub && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 hub: base generate_hub
-	cd ./Hub && docker build $(BUILD_ARGS) -t $(NAME)/hub:$(TAG_VERSION) .
+	cd ./Hub && docker buildx build --platform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/hub:$(TAG_VERSION) .
 
 generate_distributor:
 	cd ./Distributor && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 distributor: base generate_distributor
-	cd ./Distributor && docker build $(BUILD_ARGS) -t $(NAME)/distributor:$(TAG_VERSION) .
+	cd ./Distributor && docker buildx build --platform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/distributor:$(TAG_VERSION) .
 
 generate_router:
 	cd ./Router && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 router: base generate_router
-	cd ./Router && docker build $(BUILD_ARGS) -t $(NAME)/router:$(TAG_VERSION) .
+	cd ./Router && docker buildx build --platform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/router:$(TAG_VERSION) .
 
 generate_sessions:
 	cd ./Sessions && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 sessions: base generate_sessions
-	cd ./Sessions && docker build $(BUILD_ARGS) -t $(NAME)/sessions:$(TAG_VERSION) .
+	cd ./Sessions && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/sessions:$(TAG_VERSION) .
 
 generate_sessionqueue:
 	cd ./SessionQueue && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 sessionqueue: base generate_sessionqueue
-	cd ./SessionQueue && docker build $(BUILD_ARGS) -t $(NAME)/session-queue:$(TAG_VERSION) .
+	cd ./SessionQueue && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/session-queue:$(TAG_VERSION) .
 
 generate_event_bus:
 	cd ./EventBus && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 event_bus: base generate_event_bus
-	cd ./EventBus && docker build $(BUILD_ARGS) -t $(NAME)/event-bus:$(TAG_VERSION) .
+	cd ./EventBus && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/event-bus:$(TAG_VERSION) .
 
 generate_node_base:
 	cd ./NodeBase && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 node_base: base generate_node_base
-	cd ./NodeBase && docker build $(BUILD_ARGS) -t $(NAME)/node-base:$(TAG_VERSION) .
+	cd ./NodeBase && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/node-base:$(TAG_VERSION) .
 
 generate_chrome:
 	cd ./NodeChrome && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 chrome: node_base generate_chrome
-	cd ./NodeChrome && docker build $(BUILD_ARGS) -t $(NAME)/node-chrome:$(TAG_VERSION) .
+	cd ./NodeChrome && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/node-chrome:$(TAG_VERSION) .
 
 generate_edge:
 	cd ./NodeEdge && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 edge: node_base generate_edge
-	cd ./NodeEdge && docker build $(BUILD_ARGS) -t $(NAME)/node-edge:$(TAG_VERSION) .
+	cd ./NodeEdge && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/node-edge:$(TAG_VERSION) .
 
 generate_firefox:
 	cd ./NodeFirefox && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 firefox: node_base generate_firefox
-	cd ./NodeFirefox && docker build $(BUILD_ARGS) -t $(NAME)/node-firefox:$(TAG_VERSION) .
+	cd ./NodeFirefox && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/node-firefox:$(TAG_VERSION) .
 
 generate_docker:
 	cd ./NodeDocker && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 docker: base generate_docker
-	cd ./NodeDocker && docker build $(BUILD_ARGS) -t $(NAME)/node-docker:$(TAG_VERSION) .
+	cd ./NodeDocker && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/node-docker:$(TAG_VERSION) .
 
 generate_standalone_docker:
 	cd ./StandaloneDocker && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 standalone_docker: base generate_standalone_docker
-	cd ./StandaloneDocker && docker build $(BUILD_ARGS) -t $(NAME)/standalone-docker:$(TAG_VERSION) .
+	cd ./StandaloneDocker && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/standalone-docker:$(TAG_VERSION) .
 
 generate_standalone_firefox:
 	cd ./Standalone && ./generate.sh StandaloneFirefox node-firefox $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 standalone_firefox: firefox generate_standalone_firefox
-	cd ./StandaloneFirefox && docker build $(BUILD_ARGS) -t $(NAME)/standalone-firefox:$(TAG_VERSION) .
+	cd ./StandaloneFirefox && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/standalone-firefox:$(TAG_VERSION) .
 
 generate_standalone_chrome:
 	cd ./Standalone && ./generate.sh StandaloneChrome node-chrome $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 standalone_chrome: chrome generate_standalone_chrome
-	cd ./StandaloneChrome && docker build $(BUILD_ARGS) -t $(NAME)/standalone-chrome:$(TAG_VERSION) .
+	cd ./StandaloneChrome && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/standalone-chrome:$(TAG_VERSION) .
 
 generate_standalone_edge:
 	cd ./Standalone && ./generate.sh StandaloneEdge node-edge $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 standalone_edge: edge generate_standalone_edge
-	cd ./StandaloneEdge && docker build $(BUILD_ARGS) -t $(NAME)/standalone-edge:$(TAG_VERSION) .
+	cd ./StandaloneEdge && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/standalone-edge:$(TAG_VERSION) .
 
 video:
-	cd ./Video && docker build $(BUILD_ARGS) -t $(NAME)/video:$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) .
+	cd ./Video && docker buildx build --plattform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/video:$(FFMPEG_TAG_VERSION)-$(BUILD_DATE) .
 
 
 # https://github.com/SeleniumHQ/docker-selenium/issues/992
