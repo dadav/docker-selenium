@@ -51,6 +51,7 @@ build: all
 ci: build test
 
 base:
+	docker buildx create --use
 	cd ./Base && docker buildx build --platform $(BUILD_ARCHS) $(BUILD_ARGS) -t $(NAME)/base:$(TAG_VERSION) .
 
 generate_hub:
