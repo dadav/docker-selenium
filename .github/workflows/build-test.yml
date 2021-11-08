@@ -1,12 +1,6 @@
 name: Build & test
 
-on:
-  push:
-    branches:
-      - trunk
-  pull_request:
-    branches:
-      - trunk
+on: [push, pull_request]
 
 jobs:
   build-and-test:
