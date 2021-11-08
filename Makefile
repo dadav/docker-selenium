@@ -6,7 +6,7 @@ TAG_VERSION := $(VERSION)-$(BUILD_DATE)
 NAMESPACE := $(or $(NAMESPACE),$(NAMESPACE),$(NAME))
 AUTHORS := $(or $(AUTHORS),$(AUTHORS),sj26)
 PUSH_IMAGE := $(or $(PUSH_IMAGE),$(PUSH_IMAGE),false)
-DEFAULT_BUILD_ARGS := --platform linux/amd64,linux/arm64
+DEFAULT_BUILD_ARGS := --platform linux/amd64,linux/arm64 --no-cache
 BUILD_ARGS := $(or $(BUILD_ARGS),$(BUILD_ARGS),$(DEFAULT_BUILD_ARGS))
 MAJOR := $(word 1,$(subst ., ,$(TAG_VERSION)))
 MINOR := $(word 2,$(subst ., ,$(TAG_VERSION)))
@@ -41,8 +41,12 @@ build: all
 
 ci: build test
 
-base:
-	docker buildx create --use
+docker-setup:
+	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+	docker buildx create --name multiarch --driver docker-container --use
+	docker buildx inspect --bootstrap
+
+base: docker-setup
 	cd ./Base && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/base:$(TAG_VERSION) .
 
 generate_hub:
@@ -212,4 +216,5 @@ test_firefox_standalone:
 	standalone_firefox \
 	tag_latest \
 	tag_and_push_browser_images \
-	test
+	test \
+	docker-setup
