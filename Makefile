@@ -47,73 +47,73 @@ docker-setup:
 	docker buildx inspect --bootstrap
 
 base: docker-setup
-	cd ./Base && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/base:$(TAG_VERSION) .
+	cd ./Base && docker buildx build $(BUILD_ARGS) -t $(NAME)/base:$(TAG_VERSION) .
 
 generate_hub:
 	cd ./Hub && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 hub: base generate_hub
-	cd ./Hub && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/hub:$(TAG_VERSION) .
+	cd ./Hub && docker buildx build $(BUILD_ARGS) -t $(NAME)/hub:$(TAG_VERSION) .
 
 generate_distributor:
 	cd ./Distributor && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 distributor: base generate_distributor
-	cd ./Distributor && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/distributor:$(TAG_VERSION) .
+	cd ./Distributor && docker buildx build $(BUILD_ARGS) -t $(NAME)/distributor:$(TAG_VERSION) .
 
 generate_router:
 	cd ./Router && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 router: base generate_router
-	cd ./Router && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/router:$(TAG_VERSION) .
+	cd ./Router && docker buildx build $(BUILD_ARGS) -t $(NAME)/router:$(TAG_VERSION) .
 
 generate_sessions:
 	cd ./Sessions && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 sessions: base generate_sessions
-	cd ./Sessions && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/sessions:$(TAG_VERSION) .
+	cd ./Sessions && docker buildx build $(BUILD_ARGS) -t $(NAME)/sessions:$(TAG_VERSION) .
 
 generate_sessionqueue:
 	cd ./SessionQueue && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 sessionqueuer: base generate_sessionqueuer
-	cd ./SessionQueuer && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/session-queuer:$(TAG_VERSION) .
+	cd ./SessionQueuer && docker buildx build $(BUILD_ARGS) -t $(NAME)/session-queuer:$(TAG_VERSION) .
 
 generate_event_bus:
 	cd ./EventBus && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 event_bus: base generate_event_bus
-	cd ./EventBus && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/event-bus:$(TAG_VERSION) .
+	cd ./EventBus && docker buildx build $(BUILD_ARGS) -t $(NAME)/event-bus:$(TAG_VERSION) .
 
 generate_node_base:
 	cd ./NodeBase && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 node_base: base generate_node_base
-	cd ./NodeBase && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/node-base:$(TAG_VERSION) .
+	cd ./NodeBase && docker buildx build $(BUILD_ARGS) -t $(NAME)/node-base:$(TAG_VERSION) .
 
 generate_chromium:
 	cd ./NodeChromium && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 chromium: node_base generate_chromium
-	cd ./NodeChromium && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/node-chromium:$(TAG_VERSION) .
+	cd ./NodeChromium && docker buildx build $(BUILD_ARGS) -t $(NAME)/node-chromium:$(TAG_VERSION) .
 
 generate_firefox:
 	cd ./NodeFirefox && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 firefox: node_base generate_firefox
-	cd ./NodeFirefox && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/node-firefox:$(TAG_VERSION) .
+	cd ./NodeFirefox && docker buildx build $(BUILD_ARGS) -t $(NAME)/node-firefox:$(TAG_VERSION) .
 
 generate_standalone_firefox:
 	cd ./Standalone && ./generate.sh StandaloneFirefox node-firefox $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 standalone_firefox: firefox generate_standalone_firefox
-	cd ./StandaloneFirefox && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/standalone-firefox:$(TAG_VERSION) .
+	cd ./StandaloneFirefox && docker buildx build $(BUILD_ARGS) -t $(NAME)/standalone-firefox:$(TAG_VERSION) .
 
 generate_standalone_chromium:
 	cd ./Standalone && ./generate.sh StandaloneChromium node-chromium $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 standalone_chromium: chromium generate_standalone_chromium
-	cd ./StandaloneChromium && docker buildx build --push $(BUILD_ARGS) -t $(NAME)/standalone-chromium:$(TAG_VERSION) .
+	cd ./StandaloneChromium && docker buildx build $(BUILD_ARGS) -t $(NAME)/standalone-chromium:$(TAG_VERSION) .
 
 tag_latest:
 	docker tag $(NAME)/base:$(TAG_VERSION) $(NAME)/base:latest
