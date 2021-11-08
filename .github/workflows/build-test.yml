@@ -33,6 +33,8 @@ jobs:
         run: echo ${BRANCH}
       - name: Sets build date
         run: echo "BUILD_DATE=$(date '+%Y%m%d')" >> $GITHUB_ENV
+      - name: Install apt-utils
+        run: sudo apt-get install -y apt-utils
       - name: Build Docker images
         run: VERSION=${BRANCH} BUILD_DATE=${BUILD_DATE} make build
       - name: Test Docker images
