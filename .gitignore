@@ -13,6 +13,8 @@ assets
 .vscode
 
 # Ignoring generated files during the build process
+*/Dockerfile
+!Base/Dockerfile
 StandaloneC*/selenium.conf
 StandaloneF*/selenium.conf
 StandaloneE*/selenium.conf
