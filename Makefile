@@ -1,36 +1,24 @@
-NAME := $(or $(NAME),$(NAME),seleniarm)
+NAME := $(or ,$(NAME),seleniarm)
 CURRENT_DATE := $(shell date '+%Y%m%d')
-BUILD_DATE := $(or $(BUILD_DATE),$(BUILD_DATE),$(CURRENT_DATE))
-VERSION := $(or $(VERSION),$(VERSION),4.0.0-beta-3)
+BUILD_DATE := $(or $(BUILD_DATE),$(CURRENT_DATE))
+VERSION := $(or $(VERSION),4.0.0-beta-3)
 TAG_VERSION := $(VERSION)-$(BUILD_DATE)
-NAMESPACE := $(or $(NAMESPACE),$(NAMESPACE),$(NAME))
-AUTHORS := $(or $(AUTHORS),$(AUTHORS),sj26)
-PUSH_IMAGE := $(or $(PUSH_IMAGE),$(PUSH_IMAGE),false)
+NAMESPACE := $(or $(NAMESPACE),$(NAME))
+AUTHORS := $(or $(AUTHORS),sj26)
+PUSH_IMAGE := $(or $(PUSH_IMAGE),false)
 DEFAULT_BUILD_ARGS := --platform linux/arm64 --load
-BUILD_ARGS := $(or $(BUILD_ARGS),$(BUILD_ARGS),$(DEFAULT_BUILD_ARGS))
+BUILD_ARGS := $(or $(BUILD_ARGS),$(DEFAULT_BUILD_ARGS))
 MAJOR := $(word 1,$(subst ., ,$(TAG_VERSION)))
 MINOR := $(word 2,$(subst ., ,$(TAG_VERSION)))
 MAJOR_MINOR_PATCH := $(word 1,$(subst -, ,$(TAG_VERSION)))
-FFMPEG_TAG_VERSION := $(or $(FFMPEG_TAG_VERSION),$(FFMPEG_TAG_VERSION),ffmpeg-4.3.1)
 
-all: hub \
-	distributor \
-	router \
-	sessions \
-	sessionqueue \
-	event_bus \
+all: \
 	chromium \
-	firefox \
-	standalone_chromium \
-	standalone_firefox
+  firefox \
+  standalone_chromium \
+  standalone_firefox
 
 generate_all:	\
-	generate_hub \
-	generate_distributor \
-	generate_router \
-	generate_sessions \
-	generate_sessionqueue \
-	generate_event_bus \
 	generate_node_base \
 	generate_chromium \
 	generate_firefox \
@@ -48,43 +36,6 @@ docker-setup:
 
 base: docker-setup
 	cd ./Base && docker buildx build $(BUILD_ARGS) -t $(NAME)/base:$(TAG_VERSION) .
-
-generate_hub:
-	cd ./Hub && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
-
-hub: base generate_hub
-	docker images
-	cd ./Hub && docker buildx build $(BUILD_ARGS) -t $(NAME)/hub:$(TAG_VERSION) .
-
-generate_distributor:
-	cd ./Distributor && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
-
-distributor: base generate_distributor
-	cd ./Distributor && docker buildx build $(BUILD_ARGS) -t $(NAME)/distributor:$(TAG_VERSION) .
-
-generate_router:
-	cd ./Router && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
-
-router: base generate_router
-	cd ./Router && docker buildx build $(BUILD_ARGS) -t $(NAME)/router:$(TAG_VERSION) .
-
-generate_sessions:
-	cd ./Sessions && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
-
-sessions: base generate_sessions
-	cd ./Sessions && docker buildx build $(BUILD_ARGS) -t $(NAME)/sessions:$(TAG_VERSION) .
-
-generate_sessionqueue:
-	cd ./SessionQueue && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
-
-sessionqueuer: base generate_sessionqueuer
-	cd ./SessionQueuer && docker buildx build $(BUILD_ARGS) -t $(NAME)/session-queuer:$(TAG_VERSION) .
-
-generate_event_bus:
-	cd ./EventBus && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
-
-event_bus: base generate_event_bus
-	cd ./EventBus && docker buildx build $(BUILD_ARGS) -t $(NAME)/event-bus:$(TAG_VERSION) .
 
 generate_node_base:
 	cd ./NodeBase && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
@@ -118,12 +69,6 @@ standalone_chromium: chromium generate_standalone_chromium
 
 tag_latest:
 	docker tag $(NAME)/base:$(TAG_VERSION) $(NAME)/base:latest
-	docker tag $(NAME)/hub:$(TAG_VERSION) $(NAME)/hub:latest
-	docker tag $(NAME)/distributor:$(TAG_VERSION) $(NAME)/distributor:latest
-	docker tag $(NAME)/router:$(TAG_VERSION) $(NAME)/router:latest
-	docker tag $(NAME)/sessions:$(TAG_VERSION) $(NAME)/sessions:latest
-	docker tag $(NAME)/session-queue:$(TAG_VERSION) $(NAME)/session-queue:latest
-	docker tag $(NAME)/event-bus:$(TAG_VERSION) $(NAME)/event-bus:latest
 	docker tag $(NAME)/node-base:$(TAG_VERSION) $(NAME)/node-base:latest
 	docker tag $(NAME)/node-chromium:$(TAG_VERSION) $(NAME)/node-chromium:latest
 	docker tag $(NAME)/node-firefox:$(TAG_VERSION) $(NAME)/node-firefox:latest
@@ -132,36 +77,18 @@ tag_latest:
 
 tag_major_minor:
 	docker tag $(NAME)/base:$(TAG_VERSION) $(NAME)/base:$(MAJOR)
-	docker tag $(NAME)/hub:$(TAG_VERSION) $(NAME)/hub:$(MAJOR)
-	docker tag $(NAME)/distributor:$(TAG_VERSION) $(NAME)/distributor:$(MAJOR)
-	docker tag $(NAME)/router:$(TAG_VERSION) $(NAME)/router:$(MAJOR)
-	docker tag $(NAME)/sessions:$(TAG_VERSION) $(NAME)/sessions:$(MAJOR)
-	docker tag $(NAME)/session-queue:$(TAG_VERSION) $(NAME)/session-queue:$(MAJOR)
-	docker tag $(NAME)/event-bus:$(TAG_VERSION) $(NAME)/event-bus:$(MAJOR)
 	docker tag $(NAME)/node-base:$(TAG_VERSION) $(NAME)/node-base:$(MAJOR)
 	docker tag $(NAME)/node-chromium:$(TAG_VERSION) $(NAME)/node-chromium:$(MAJOR)
 	docker tag $(NAME)/node-firefox:$(TAG_VERSION) $(NAME)/node-firefox:$(MAJOR)
 	docker tag $(NAME)/standalone-chromium:$(TAG_VERSION) $(NAME)/standalone-chromium:$(MAJOR)
 	docker tag $(NAME)/standalone-firefox:$(TAG_VERSION) $(NAME)/standalone-firefox:$(MAJOR)
 	docker tag $(NAME)/base:$(TAG_VERSION) $(NAME)/base:$(MAJOR).$(MINOR)
-	docker tag $(NAME)/hub:$(TAG_VERSION) $(NAME)/hub:$(MAJOR).$(MINOR)
-	docker tag $(NAME)/distributor:$(TAG_VERSION) $(NAME)/distributor:$(MAJOR).$(MINOR)
-	docker tag $(NAME)/router:$(TAG_VERSION) $(NAME)/router:$(MAJOR).$(MINOR)
-	docker tag $(NAME)/sessions:$(TAG_VERSION) $(NAME)/sessions:$(MAJOR).$(MINOR)
-	docker tag $(NAME)/session-queue:$(TAG_VERSION) $(NAME)/session-queue:$(MAJOR).$(MINOR)
-	docker tag $(NAME)/event-bus:$(TAG_VERSION) $(NAME)/event-bus:$(MAJOR).$(MINOR)
 	docker tag $(NAME)/node-base:$(TAG_VERSION) $(NAME)/node-base:$(MAJOR).$(MINOR)
 	docker tag $(NAME)/node-chromium:$(TAG_VERSION) $(NAME)/node-chromium:$(MAJOR).$(MINOR)
 	docker tag $(NAME)/node-firefox:$(TAG_VERSION) $(NAME)/node-firefox:$(MAJOR).$(MINOR)
 	docker tag $(NAME)/standalone-chromium:$(TAG_VERSION) $(NAME)/standalone-chromium:$(MAJOR).$(MINOR)
 	docker tag $(NAME)/standalone-firefox:$(TAG_VERSION) $(NAME)/standalone-firefox:$(MAJOR).$(MINOR)
 	docker tag $(NAME)/base:$(TAG_VERSION) $(NAME)/base:$(MAJOR_MINOR_PATCH)
-	docker tag $(NAME)/hub:$(TAG_VERSION) $(NAME)/hub:$(MAJOR_MINOR_PATCH)
-	docker tag $(NAME)/distributor:$(TAG_VERSION) $(NAME)/distributor:$(MAJOR_MINOR_PATCH)
-	docker tag $(NAME)/router:$(TAG_VERSION) $(NAME)/router:$(MAJOR_MINOR_PATCH)
-	docker tag $(NAME)/sessions:$(TAG_VERSION) $(NAME)/sessions:$(MAJOR_MINOR_PATCH)
-	docker tag $(NAME)/session-queue:$(TAG_VERSION) $(NAME)/session-queue:$(MAJOR_MINOR_PATCH)
-	docker tag $(NAME)/event-bus:$(TAG_VERSION) $(NAME)/event-bus:$(MAJOR_MINOR_PATCH)
 	docker tag $(NAME)/node-base:$(TAG_VERSION) $(NAME)/node-base:$(MAJOR_MINOR_PATCH)
 	docker tag $(NAME)/node-chromium:$(TAG_VERSION) $(NAME)/node-chromium:$(MAJOR_MINOR_PATCH)
 	docker tag $(NAME)/node-firefox:$(TAG_VERSION) $(NAME)/node-firefox:$(MAJOR_MINOR_PATCH)
@@ -172,7 +99,6 @@ test: test_chromium \
  test_firefox \
  test_chromium_standalone \
  test_firefox_standalone
-
 
 test_chromium:
 	VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) ./tests/bootstrap.sh NodeChromium
@@ -194,28 +120,13 @@ test_firefox_standalone:
 	chromium \
 	firefox \
 	generate_all \
-	generate_hub \
-	generate_distributor \
-	generate_router \
-	generate_sessions \
-	generate_sessionqueue \
-	generate_event_bus \
 	generate_node_base \
 	generate_chromium \
 	generate_firefox \
 	generate_standalone_chromium \
 	generate_standalone_firefox \
-	hub \
-	distributor \
-	router \
-	sessions \
-	sessionqueue \
-	event_bus \
-	node_base \
-	release \
 	standalone_chromium \
 	standalone_firefox \
 	tag_latest \
-	tag_and_push_browser_images \
 	test \
 	docker-setup
