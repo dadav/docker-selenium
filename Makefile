@@ -53,6 +53,7 @@ generate_hub:
 	cd ./Hub && ./generate.sh $(TAG_VERSION) $(NAMESPACE) $(AUTHORS)
 
 hub: base generate_hub
+	docker images
 	cd ./Hub && docker buildx build $(BUILD_ARGS) -t $(NAME)/hub:$(TAG_VERSION) .
 
 generate_distributor:
