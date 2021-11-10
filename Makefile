@@ -17,7 +17,15 @@ all: \
 
 build: all
 
-ci: build test
+ci: build
+
+test: test_chromium test_firefox
+
+test_chromium:
+	VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) ./tests/bootstrap.sh chromium
+
+test_firefox:
+	VERSION=$(TAG_VERSION) NAMESPACE=$(NAMESPACE) ./tests/bootstrap.sh firefox
 
 docker-setup:
 	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
@@ -46,6 +54,9 @@ tag_major_minor:
 	all \
 	build \
 	ci \
+	test \
+	test_firefox \
+	test_chromium \
 	chromium \
 	firefox \
 	tag_latest \

@@ -1,20 +1,14 @@
-name: Build & test
+name: Build the image
 
 on: [push, pull_request]
 
 jobs:
-  build-and-test:
-    # Skip job based on the commit message, only works in push to branches for now
+  build:
     if: contains(toJson(github.event.commits), '[skip ci]') == false
-    name: Build & test Docker images with random user
+    name: Build the image
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        use-random-user: [false, true]
     steps:
       - uses: actions/checkout@v1
-      - name: Output Docker info
-        run: docker info
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
@@ -29,10 +23,7 @@ jobs:
         run: echo "BRANCH=$(echo ${TARGET_BRANCH##*/})" >> $GITHUB_ENV
         env:
           TARGET_BRANCH: ${{ github.head_ref }}
-      - name: Output branch name
-        run: echo ${BRANCH}
       - name: Sets build date
         run: echo "BUILD_DATE=$(date '+%Y%m%d')" >> $GITHUB_ENV
       - name: Build Docker images
         run: VERSION=${BRANCH} BUILD_DATE=${BUILD_DATE} make build
-

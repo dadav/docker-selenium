@@ -22,72 +22,10 @@ http_proxy = os.environ.get('http_proxy', '')
 https_proxy = os.environ.get('https_proxy', '')
 no_proxy = os.environ.get('no_proxy', '')
 
-IMAGE_NAME_MAP = {
-    # Hub
-    'Hub': 'hub',
-
-    # Chrome Images
-    'NodeChrome': 'node-chrome',
-    'StandaloneChrome': 'standalone-chrome',
-
-    # Edge Images
-    'NodeEdge': 'node-edge',
-    'StandaloneEdge': 'standalone-edge',
-
-    # Firefox Images
-    'NodeFirefox': 'node-firefox',
-    'StandaloneFirefox': 'standalone-firefox',
-}
-
 TEST_NAME_MAP = {
-    # Chrome Images
-    'NodeChrome': 'ChromeTests',
-    'StandaloneChrome': 'ChromeTests',
-
-    # Edge Images
-    'NodeEdge': 'EdgeTests',
-    'StandaloneEdge': 'EdgeTests',
-
-    # Firefox Images
-    'NodeFirefox': 'FirefoxTests',
-    'StandaloneFirefox': 'FirefoxTests',
+    'chromium': 'ChromiumTests',
+    'firefox': 'FirefoxTests',
 }
-
-
-def launch_hub(network_name):
-    """
-    Launch the hub
-    :return: the hub ID
-    """
-    logger.info("Launching Hub...")
-
-    existing_hub = None
-
-    try:
-        existing_hub = client.containers.get('selenium-hub')
-    except NotFound:
-        pass
-
-    if existing_hub:
-        logger.debug("hub already exists. removing.")
-        if existing_hub.status == 'running':
-            logger.debug("hub is running. Killing")
-            existing_hub.kill()
-            logger.debug("hub killed")
-        existing_hub.remove()
-        logger.debug("hub removed")
-
-    grid_ports = {'4442': 4442, '4443': 4443, '4444': 4444}
-    if use_random_user_id:
-        hub_container_id = launch_container('Hub', network=network_name, name="selenium-hub",
-                                            ports=grid_ports, user=random_user_id)
-    else:
-        hub_container_id = launch_container('Hub', network=network_name, name="selenium-hub",
-                                            ports=grid_ports)
-
-    logger.info("Hub Launched")
-    return hub_container_id
-
 
 def create_network(network_name):
     client.networks.create(network_name, driver="bridge")
@@ -106,7 +44,7 @@ def launch_container(container, **kwargs):
     # Build the container if it doesn't exist
     logger.info("Building %s container..." % container)
     client.images.build(path='../%s' % container,
-                        tag="%s/%s:%s" % (NAMESPACE, IMAGE_NAME_MAP[container], VERSION),
+                        tag="%s/%s:%s" % (NAMESPACE, container, VERSION),
                         rm=True)
     logger.info("Done building %s" % container)
 
@@ -121,7 +59,7 @@ def launch_container(container, **kwargs):
         'SE_EVENT_BUS_PUBLISH_PORT': 4442,
         'SE_EVENT_BUS_SUBSCRIBE_PORT': 4443
     }
-    container_id = client.containers.run("%s/%s:%s" % (NAMESPACE, IMAGE_NAME_MAP[container], VERSION),
+    container_id = client.containers.run("%s/%s:%s" % (NAMESPACE, container, VERSION),
                                          detach=True,
                                          environment=environment,
                                          shm_size="2G",
@@ -135,13 +73,10 @@ if __name__ == '__main__':
     image = sys.argv[1]
 
     use_random_user_id = USE_RANDOM_USER_ID == 'true'
-    run_in_docker_compose = RUN_IN_DOCKER_COMPOSE == 'true'
     random_user_id = random.randint(100000, 2147483647)
 
     if use_random_user_id:
         logger.info("Running tests with a random user ID -> %s" % random_user_id)
-
-    standalone = 'standalone' in image.lower()
 
     # Flag for failure (for posterity)
     failed = False
@@ -149,33 +84,16 @@ if __name__ == '__main__':
     # Avoiding to start the containers when running inside docker-compose
     test_container_id = ''
     hub_id = ''
-    if not run_in_docker_compose:
-        logger.info('========== Starting %s Container ==========' % image)
 
-        if standalone:
-            """
-            Standalone Configuration
-            """
-            ports = {'4444': 4444}
-            if use_random_user_id:
-                test_container_id = launch_container(image, ports=ports, user=random_user_id)
-            else:
-                test_container_id = launch_container(image, ports=ports)
-        else:
-            """
-            Hub / Node Configuration
-            """
-            prune_networks()
-            create_network("grid")
-            hub_id = launch_hub("grid")
-            ports = {'5555': 5555, '7900': 7900}
-            if use_random_user_id:
-                test_container_id = launch_container(image, network='grid', ports=ports, user=random_user_id)
-            else:
-                test_container_id = launch_container(image, network='grid', ports=ports)
-            prune_networks()
+    logger.info('========== Starting %s Container ==========' % image)
 
-        logger.info('========== / Containers ready to go ==========')
+    ports = {'4444': 4444}
+    if use_random_user_id:
+        test_container_id = launch_container(image, ports=ports, user=random_user_id)
+    else:
+        test_container_id = launch_container(image, ports=ports)
+
+    logger.info('========== / Containers ready to go ==========')
 
     try:
         # Smoke tests
@@ -202,21 +120,13 @@ if __name__ == '__main__':
         failed = True
 
     # Avoiding a container cleanup if tests run inside docker-compose
-    if not run_in_docker_compose:
-        logger.info("Cleaning up...")
+    logger.info("Cleaning up...")
 
-        test_container = client.containers.get(test_container_id)
-        test_container.kill()
-        test_container.remove()
+    test_container = client.containers.get(test_container_id)
+    test_container.kill()
+    test_container.remove()
 
-        if standalone:
-            logger.info("Standalone Cleaned up")
-        else:
-            # Kill the launched hub
-            hub = client.containers.get(hub_id)
-            hub.kill()
-            hub.remove()
-            logger.info("Hub / Node Cleaned up")
+    logger.info("Standalone Cleaned up")
 
     if failed:
         exit(1)
