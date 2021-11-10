@@ -19,7 +19,7 @@ $ docker run -d -p 4444:4444 -v /dev/shm:/dev/shm seleniarm/standalone-firefox
 
 3. That's it!
 
-4. (Optional) To see what is happening inside the container, head to http://localhost:7900 (password is `secret`).
+4. (Optional) To see what is happening inside the container, head to http://localhost:7900 (password is `secret`)
 
 ## Standalone
 
