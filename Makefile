@@ -1,4 +1,4 @@
-NAME := $(or ,$(NAME),seleniarm)
+NAME := dadav
 CURRENT_DATE := $(shell date '+%Y%m%d')
 BUILD_DATE := $(or $(BUILD_DATE),$(CURRENT_DATE))
 VERSION := $(or $(VERSION),4.0.0-beta-3)
@@ -33,22 +33,22 @@ docker-setup:
 	docker buildx inspect --bootstrap
 
 chromium: docker-setup
-	docker buildx build $(BUILD_ARGS) -t $(NAME)/chromium:$(TAG_VERSION) -f Dockerfile.chromium .
+	docker buildx build $(BUILD_ARGS) -t $(NAME)/seleniarm-chromium:$(TAG_VERSION) -f Dockerfile.chromium .
 
 firefox: docker-setup
-	docker buildx build $(BUILD_ARGS) -t $(NAME)/firefox:$(TAG_VERSION) -f Dockerfile.firefox .
+	docker buildx build $(BUILD_ARGS) -t $(NAME)/seleniam-firefox:$(TAG_VERSION) -f Dockerfile.firefox .
 
 tag_latest:
-	docker tag $(NAME)/chromium:$(TAG_VERSION) $(NAME)/chromium:latest
-	docker tag $(NAME)/firefox:$(TAG_VERSION) $(NAME)/firefox:latest
+	docker tag $(NAME)/seleniarm-chromium:$(TAG_VERSION) $(NAME)/seleniarm-chromium:latest
+	docker tag $(NAME)/seleniarm-firefox:$(TAG_VERSION) $(NAME)/seleniarm-firefox:latest
 
 tag_major_minor:
-	docker tag $(NAME)/chromium:$(TAG_VERSION) $(NAME)/chromium:$(MAJOR)
-	docker tag $(NAME)/firefox:$(TAG_VERSION) $(NAME)/firefox:$(MAJOR)
-	docker tag $(NAME)/chromium:$(TAG_VERSION) $(NAME)/chromium:$(MAJOR).$(MINOR)
-	docker tag $(NAME)/firefox:$(TAG_VERSION) $(NAME)/firefox:$(MAJOR).$(MINOR)
-	docker tag $(NAME)/chromium:$(TAG_VERSION) $(NAME)/chromium:$(MAJOR_MINOR_PATCH)
-	docker tag $(NAME)/firefox:$(TAG_VERSION) $(NAME)/firefox:$(MAJOR_MINOR_PATCH)
+	docker tag $(NAME)/seleniarm-chromium:$(TAG_VERSION) $(NAME)/seleniarm-chromium:$(MAJOR)
+	docker tag $(NAME)/seleniarm-firefox:$(TAG_VERSION) $(NAME)/seleniarm-firefox:$(MAJOR)
+	docker tag $(NAME)/seleniarm-chromium:$(TAG_VERSION) $(NAME)/seleniarm-chromium:$(MAJOR).$(MINOR)
+	docker tag $(NAME)/seleniarm-firefox:$(TAG_VERSION) $(NAME)/seleniarm-firefox:$(MAJOR).$(MINOR)
+	docker tag $(NAME)/seleniarm-chromium:$(TAG_VERSION) $(NAME)/seleniarm-chromium:$(MAJOR_MINOR_PATCH)
+	docker tag $(NAME)/seleniarm-firefox:$(TAG_VERSION) $(NAME)/seleniarm-firefox:$(MAJOR_MINOR_PATCH)
 
 .PHONY: \
 	all \

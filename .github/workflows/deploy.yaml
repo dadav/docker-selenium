@@ -26,3 +26,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build images
         run: PUSH=1 VERSION="${BUILD_VERSION}" BUILD_DATE=${BUILD_DATE} make build
+      - name: Tag latest
+        run: VERSION="${BUILD_VERSION}" BUILD_DATE=${BUILD_DATE} make tag_latest
+      - name: Tag major/minor
+        run: VERSION="${BUILD_VERSION}" BUILD_DATE=${BUILD_DATE} make tag_major_minor
