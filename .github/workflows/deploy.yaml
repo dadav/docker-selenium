@@ -2,14 +2,11 @@ name: Deploy
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*.*.*'
 
 jobs:
   deploy:
-    if: contains(toJson(github.event.commits), '[deploy]') == true
     name: Deploy Docker images
     runs-on: ubuntu-20.04
     steps:
