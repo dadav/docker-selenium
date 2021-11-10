@@ -17,7 +17,7 @@ all: \
 
 build: all
 
-ci: build test
+ci: build
 
 docker-setup:
 	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
