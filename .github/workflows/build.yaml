@@ -23,7 +23,5 @@ jobs:
         run: echo "BRANCH=$(echo ${TARGET_BRANCH##*/})" >> $GITHUB_ENV
         env:
           TARGET_BRANCH: ${{ github.head_ref }}
-      - name: Sets build date
-        run: echo "BUILD_DATE=$(date '+%Y%m%d')" >> $GITHUB_ENV
       - name: Build Docker images
-        run: VERSION=${BRANCH} BUILD_DATE=${BUILD_DATE} make build
+        run: VERSION=${BRANCH} make build

@@ -1,8 +1,6 @@
 NAME := dadav
-CURRENT_DATE := $(shell date '+%Y%m%d')
-BUILD_DATE := $(or $(BUILD_DATE),$(CURRENT_DATE))
 VERSION := $(or $(VERSION),4.0.0-beta-3)
-TAG_VERSION := $(VERSION)-$(BUILD_DATE)
+TAG_VERSION := $(VERSION)
 NAMESPACE := $(or $(NAMESPACE),$(NAME))
 AUTHORS := $(or $(AUTHORS),dadav)
 DEFAULT_BUILD_ARGS := --platform linux/arm64 $(if $(PUSH),--push,--load)
