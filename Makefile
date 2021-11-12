@@ -12,7 +12,7 @@ MAJOR_MINOR_PATCH := $(word 1,$(subst -, ,$(TAG_VERSION)))
 all: \
 	chromium \
   firefox \
-	chorium-nginx
+	chromium-nginx
 
 build: all
 
