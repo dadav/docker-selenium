@@ -1,0 +1,232 @@
+FROM debian
+
+LABEL authors="Selenium <selenium-developers@googlegroups.com>"
+
+ARG TARGETARCH
+
+# No interactive frontend during docker build
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NONINTERACTIVE_SEEN=true
+
+#========================
+# Miscellaneous packages
+# Includes minimal runtime used for executing non GUI Java programs
+#========================
+RUN apt-get -qqy update \
+  && apt-get -qqy --no-install-recommends install \
+    bzip2 \
+    ca-certificates \
+    default-jre-headless \
+    tzdata \
+    sudo \
+    unzip \
+    wget \
+    jq \
+    curl \
+    supervisor \
+    gnupg2 \
+    xvfb \
+    pulseaudio \
+    chromium \
+    chromium-driver \
+    tzdata \
+    locales \
+    fluxbox \
+    x11vnc \
+    libfontconfig \
+    libfreetype6 \
+    xfonts-cyrillic \
+    xfonts-scalable \
+    fonts-liberation \
+    fonts-ipafont-gothic \
+    fonts-wqy-zenhei \
+    fonts-tlwg-loma-otf \
+    nginx \
+  && apt-get -qyy autoremove \
+  && apt-get -qyy clean \
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+# nginx
+COPY files/nginx.conf /etc/nginx/nginx.conf
+COPY files/nginx-supervisor.conf /etc/supervisor/conf.d/nginx.conf
+
+#=================================
+# Chromium Launch Script Wrapper
+#=================================
+COPY files/wrap_chromium_binary /opt/bin/wrap_chromium_binary
+RUN /opt/bin/wrap_chromium_binary
+
+#===================
+# Timezone settings
+# Possible alternative: https://github.com/docker/docker/issues/3359#issuecomment-32150214
+#===================
+ENV TZ "UTC"
+RUN echo "${TZ}" > /etc/timezone \
+  && dpkg-reconfigure --frontend noninteractive tzdata
+
+#========================================
+# Add normal user and group with passwordless sudo
+#========================================
+RUN groupadd seluser \
+         --gid 1201 \
+  && useradd seluser \
+         --create-home \
+         --gid 1201 \
+         --shell /bin/bash \
+         --uid 1200 \
+  && usermod -a -G sudo seluser \
+  && echo 'ALL ALL = (ALL) NOPASSWD: ALL' >> /etc/sudoers \
+  && echo 'seluser:secret' | chpasswd
+ENV HOME=/home/seluser
+
+#======================================
+# Add Grid check script
+#======================================
+COPY files/check-grid.sh files/entry_point.sh /opt/bin/
+
+#======================================
+# Add Supervisor configuration file
+#======================================
+COPY files/supervisord.conf /etc
+
+#==========
+# Selenium & relaxing permissions for OpenShift and other non-sudo environments
+#==========
+RUN  mkdir -p /opt/selenium /opt/selenium/assets /var/run/supervisor /var/log/supervisor \
+  && touch /opt/selenium/config.toml \
+  && chmod -R 777 /opt/selenium /opt/selenium/assets /var/run/supervisor /var/log/supervisor /etc/passwd \
+  && wget --no-verbose https://github.com/SeleniumHQ/docker-selenium/releases/download/4.1.0-prerelease-20211105/selenium-server-4.1.0-prerelease-aea69daa1c.jar \
+    -O /opt/selenium/selenium-server.jar \
+  && chgrp -R 0 /opt/selenium ${HOME} /opt/selenium/assets /var/run/supervisor /var/log/supervisor \
+  && chmod -R g=u /opt/selenium ${HOME} /opt/selenium/assets /var/run/supervisor /var/log/supervisor
+
+#==============================
+# Locale and encoding settings
+#==============================
+ENV LANG_WHICH en
+ENV LANG_WHERE US
+ENV ENCODING UTF-8
+ENV LANGUAGE ${LANG_WHICH}_${LANG_WHERE}.${ENCODING}
+ENV LANG ${LANGUAGE}
+# Layer size: small: ~9 MB
+# Layer size: small: ~9 MB MB (with --no-install-recommends)
+RUN locale-gen ${LANGUAGE} \
+  && dpkg-reconfigure --frontend noninteractive locales
+
+########################################
+# noVNC exposes VNC through a web page #
+########################################
+# Download https://github.com/novnc/noVNC dated 2021-03-30 commit 84f102d6a9ffaf3972693d59bad5c6fddb6d7fb0
+# Download https://github.com/novnc/websockify dated 2021-03-22 commit c5d365dd1dbfee89881f1c1c02a2ac64838d645f
+ENV NOVNC_SHA="84f102d6a9ffaf3972693d59bad5c6fddb6d7fb0" \
+    WEBSOCKIFY_SHA="c5d365dd1dbfee89881f1c1c02a2ac64838d645f"
+RUN  wget -nv -O noVNC.zip \
+       "https://github.com/novnc/noVNC/archive/${NOVNC_SHA}.zip" \
+  && unzip -x noVNC.zip \
+  && mv noVNC-${NOVNC_SHA} /opt/bin/noVNC \
+  && cp /opt/bin/noVNC/vnc.html /opt/bin/noVNC/index.html \
+  && rm noVNC.zip \
+  && wget -nv -O websockify.zip \
+      "https://github.com/novnc/websockify/archive/${WEBSOCKIFY_SHA}.zip" \
+  && unzip -x websockify.zip \
+  && rm websockify.zip \
+  && rm -rf websockify-${WEBSOCKIFY_SHA}/tests \
+  && mv websockify-${WEBSOCKIFY_SHA} /opt/bin/noVNC/utils/websockify
+
+#=========================================================================================================================================
+# Run this command for executable file permissions for /dev/shm when this is a "child" container running in Docker Desktop and WSL2 distro
+#=========================================================================================================================================
+RUN chmod +x /dev/shm
+
+# Creating base directory for Xvfb
+RUN sudo mkdir -p /tmp/.X11-unix && sudo chmod 1777 /tmp/.X11-unix
+
+#===================================================
+# Run the following commands as non-privileged user
+#===================================================
+
+USER 1200
+
+#==============================
+# Scripts to run Selenium Node and XVFB
+#==============================
+COPY files/start-selenium-node.sh \
+     files/start-xvfb.sh \
+     /opt/bin/
+
+#==============================
+# Supervisor configuration file
+#==============================
+COPY files/selenium.conf /etc/supervisor/conf.d/
+
+#==============================
+# Generating the VNC password as seluser
+# So the service can be started with seluser
+#==============================
+
+RUN mkdir -p ${HOME}/.vnc \
+  && x11vnc -storepasswd secret ${HOME}/.vnc/passwd
+
+#==============================
+# Scripts to run fluxbox, x11vnc and noVNC
+#==============================
+COPY files/start-vnc.sh \
+     files/start-novnc.sh \
+     /opt/bin/
+
+#==============================
+# Selenium Grid logo as wallpaper for Fluxbox
+#==============================
+COPY files/selenium_grid_logo.png /usr/share/images/fluxbox/ubuntu-light.png
+
+#============================
+# Some configuration options
+#============================
+ENV SCREEN_WIDTH 1360
+ENV SCREEN_HEIGHT 1020
+ENV SCREEN_DEPTH 24
+ENV SCREEN_DPI 96
+ENV DISPLAY :99.0
+ENV DISPLAY_NUM 99
+ENV START_XVFB true
+ENV START_NO_VNC true
+# Path to the Configfile
+ENV CONFIG_FILE=/opt/selenium/config.toml
+ENV GENERATE_CONFIG true
+
+#========================
+# Selenium Configuration
+#========================
+# As integer, maps to "max-concurrent-sessions"
+ENV SE_NODE_MAX_SESSIONS 1
+# As integer, maps to "session-timeout" in seconds
+ENV SE_NODE_SESSION_TIMEOUT 300
+# As boolean, maps to "override-max-sessions"
+ENV SE_NODE_OVERRIDE_MAX_SESSIONS false
+
+# Following line fixes https://github.com/SeleniumHQ/docker-selenium/issues/87
+ENV DBUS_SESSION_BUS_ADDRESS=/dev/null
+
+
+# Copying configuration script generator
+COPY files/generate_config /opt/bin/generate_config
+
+#====================================
+# Scripts to run Selenium Standalone
+#====================================
+COPY files/start-selenium-standalone.sh /opt/bin/start-selenium-standalone.sh
+
+#==============================
+# Supervisor configuration file
+#==============================
+COPY files/selenium.conf /etc/supervisor/conf.d/
+
+# Copying configuration script generator
+COPY files/generate_config /opt/bin/generate_config
+
+# Boolean value, maps "--relax-checks"
+ENV SE_RELAX_CHECKS true
+
+ENV SE_OPTS -host 127.0.0.01
+
+CMD ["/opt/bin/entry_point.sh"]

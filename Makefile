@@ -11,7 +11,8 @@ MAJOR_MINOR_PATCH := $(word 1,$(subst -, ,$(TAG_VERSION)))
 
 all: \
 	chromium \
-  firefox
+  firefox \
+	chorium-nginx
 
 build: all
 
@@ -32,6 +33,9 @@ docker-setup:
 
 chromium: docker-setup
 	docker buildx build $(BUILD_ARGS) -t $(NAME)/seleniarm-chromium:$(TAG_VERSION) -f Dockerfile.chromium .
+
+chromium-nginx: docker-setup
+	docker buildx build $(BUILD_ARGS) -t $(NAME)/seleniarm-chromium-nginx:$(TAG_VERSION) -f Dockerfile.chromium.nginx .
 
 firefox: docker-setup
 	docker buildx build $(BUILD_ARGS) -t $(NAME)/seleniam-firefox:$(TAG_VERSION) -f Dockerfile.firefox .
@@ -56,6 +60,7 @@ tag_major_minor:
 	test_firefox \
 	test_chromium \
 	chromium \
+	chromium-nginx \
 	firefox \
 	tag_latest \
 	tag_major_minor \

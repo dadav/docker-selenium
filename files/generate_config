@@ -44,6 +44,3 @@ echo "display-name = \"${SE_NODE_BROWSER_NAME}\"" >> "$FILENAME"
 echo "stereotype = '${SE_NODE_STEREOTYPE}'" >> "$FILENAME"
 echo "max-sessions = ${SE_NODE_MAX_SESSIONS}
 " >> "$FILENAME"
-
-
-
