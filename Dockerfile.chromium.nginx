@@ -229,4 +229,6 @@ ENV SE_RELAX_CHECKS true
 
 ENV SE_OPTS -host 127.0.0.01
 
+USER root
+
 CMD ["/opt/bin/entry_point.sh"]

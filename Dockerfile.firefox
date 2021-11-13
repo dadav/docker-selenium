@@ -232,4 +232,6 @@ ENV SE_RELAX_CHECKS true
 EXPOSE 4444
 EXPOSE 5900
 
+USER root
+
 CMD ["/opt/bin/entry_point.sh"]
